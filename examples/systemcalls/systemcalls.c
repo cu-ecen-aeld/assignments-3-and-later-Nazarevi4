@@ -1,4 +1,10 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 
 /**
  * @param cmd the command to execute with system()
@@ -7,15 +13,21 @@
  *   either in invocation of the system() call, or if a non-zero return
  *   value was returned by the command issued in @param cmd.
 */
-bool do_system(const char *cmd)
-{
-
+bool do_system(const char *cmd) {
 /*
  * TODO  add your code here
  *  Call the system() function with the command set in the cmd
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    if(cmd == NULL) {
+        printf("Error: input cmd argument is NULL");
+        return false;
+    }
+
+    if(system(cmd) != 0) {
+        return false;
+    }
 
     return true;
 }
@@ -34,14 +46,12 @@ bool do_system(const char *cmd)
 *   by the command issued in @param arguments with the specified arguments.
 */
 
-bool do_exec(int count, ...)
-{
+bool do_exec(int count, ...) {
     va_list args;
     va_start(args, count);
     char * command[count+1];
     int i;
-    for(i=0; i<count; i++)
-    {
+    for(i = 0; i < count; i++) {
         command[i] = va_arg(args, char *);
     }
     command[count] = NULL;
@@ -58,6 +68,28 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    pid_t PIDStatus = fork();
+    int wstatus = 0;
+    if(PIDStatus == 0) {
+        execv(command[0], command);
+        exit(1);
+        return false;
+    }
+    else if(PIDStatus > 0) {
+        PIDStatus = waitpid(PIDStatus, &wstatus, 0);
+        if(PIDStatus < 0) {
+            return false;
+        }
+        if(!WIFEXITED(wstatus)) {
+            return false;
+        }
+        if(WEXITSTATUS(wstatus) != 0) {
+            return false;
+        }
+    }
+    else {
+        return false;
+    }
 
     va_end(args);
 
@@ -92,6 +124,34 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    pid_t PIDStatus = fork();
+    int wstatus = 0;
+    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+
+    if(fd < 0) {
+        return false;
+    }
+
+    if(PIDStatus == 0) {
+        if(dup2(fd, 1) < 0) {
+            return false;
+        }
+
+        close(fd);
+        execv(command[0], command);
+        return false;
+    }
+    else if(PIDStatus > 0) {
+        close(fd);
+        PIDStatus = waitpid(PIDStatus, &wstatus, 0);
+
+        if((!WIFEXITED(wstatus)) | (WEXITSTATUS(wstatus) != 0)) {
+            return false;
+        }
+    }
+    else {
+        return false;
+    }
 
     va_end(args);
 
