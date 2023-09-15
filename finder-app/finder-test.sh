@@ -11,8 +11,8 @@ WRITESTR=AELD_IS_FUN
 WRITEDIR=/tmp/aeld-data
 username=$(cat conf/username.txt)
 
-make
-
+#make clean
+#make
 
 if [ $# -lt 3 ]
 then
@@ -52,8 +52,8 @@ then
 		exit 1
 	fi
 fi
-echo "Removing the old writer utility and compiling as a native application"
-make clean
+#echo "Removing the old writer utility and compiling as a native application"
+#make clean
 #make
 
 for i in $( seq 1 $NUMFILES)
