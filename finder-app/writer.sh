@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #Author: Ivan Nazarenko
 
 if [ $# -ne 2 ]

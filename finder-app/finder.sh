@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #Author: Ivan Nazarenko
 
 
@@ -19,6 +19,6 @@ fi
 SEARCHSTR=$2
 
 FILES=$(find $FILESDIR -type f | wc -l)
-LINES=$(grep -r "${SEARCHSTR}" ${FILESDIR} | wc -l)
+LINES=$(grep -s -r "${SEARCHSTR}" ${FILESDIR} | wc -l)
 
 echo "The number of files are ${FILES} and the number of matching lines are ${LINES}"
